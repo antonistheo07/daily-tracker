@@ -1,0 +1,142 @@
+* { box-sizing: border-box; }
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #f3f4f6;
+  margin: 0;
+  padding: 2rem 1rem;
+}
+
+main {
+  max-width: 500px;
+  margin: 0 auto;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+section { margin-bottom: 2rem; }
+section:last-child { margin-bottom: 0; }
+
+h2 { font-size: 1.1rem; margin: 0 0 .75rem; }
+
+.add-row {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+.add-row input {
+  flex: 1;
+  min-width: 0;
+  padding: .6rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.add-row input.minutes { flex: 0 0 90px; }
+
+button {
+  padding: .6rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #e5e7eb;
+  color: #111;
+  padding: .3rem .6rem;
+  font-size: .8rem;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .6rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+li span { flex: 1; }
+
+li.done span {
+  text-decoration: line-through;
+  color: #888;
+}
+
+li .delete {
+  background: #ef4444;
+  padding: .3rem .6rem;
+}
+
+/* Habits */
+li.habit {
+  flex-direction: column;
+  align-items: stretch;
+  gap: .4rem;
+}
+
+.habit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.bar {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: #2563eb;
+  transition: width .3s;
+}
+/* Finished habit */
+button.done {
+  background: #16a34a;
+  opacity: .7;
+  cursor: default;
+}
+
+li.habit.reached {
+  background: #f0fdf4;
+  border-radius: 8px;
+  padding: .6rem;
+}
+
+/* History */
+.streak {
+  margin: 0 0 .75rem;
+  font-weight: 600;
+}
+
+.history-row {
+  justify-content: space-between;
+}
+
+.history-row span:first-child { flex: 0 0 110px; }
+.history-row small { flex: 1; color: #555; }
+
+.history-row .mark {
+  flex: 0 0 auto;
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.history-row.complete span:first-child { color: #16a34a; }
+li.habit.reached .fill { background: #16a34a; }
+li.habit.reached .habit-row span { color: #16a34a; }
