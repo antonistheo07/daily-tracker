@@ -1,13 +1,34 @@
-const data = loadData();
-settleStaleTimers(data);
-ensureTodayLogs(data);
-data.habits.forEach(stopIfTargetReached);
-saveData(data);
-
+let data = emptyData();
+let appActive = false;
 let currentDay = todayKey();
 
 // Unlock sound on the first click anywhere on the page
 document.addEventListener("click", unlockAudio);
+
+// Called by auth.js after login, with the data loaded from the cloud
+function startApp(loaded) {
+  data = loaded;
+  settleStaleTimers(data);
+  ensureTodayLogs(data);
+  data.habits.forEach(stopIfTargetReached);
+  saveData(data);
+
+  currentDay = todayKey();
+  appActive = true;
+  renderHabits();
+  renderTasks();
+}
+
+// Called by auth.js on logout
+function stopApp() {
+  appActive = false;
+  data = emptyData();
+  habitList.innerHTML = "";
+  list.innerHTML = "";
+  document.getElementById("historyList").innerHTML = "";
+  document.getElementById("streak").textContent = "";
+  Object.keys(habitViews).forEach(id => delete habitViews[id]);
+}
 
 // ---------- Tasks ----------
 const input = document.getElementById("taskInput");
@@ -39,6 +60,7 @@ function toggleTask(id) {
 
 function deleteTask(id) {
   data.tasks = data.tasks.filter(t => t.id !== id);
+  markDeleted("tasks", id);
   saveData(data);
   renderTasks();
 }
@@ -115,6 +137,7 @@ function addHabitFromForm() {
 function removeHabit(habit) {
   if (!confirm(`Delete "${habit.title}" and its history?`)) return;
   deleteHabit(data, habit.id);
+  markDeleted("habits", habit.id);
   saveData(data);
   renderHabits();
 }
@@ -209,8 +232,9 @@ function renderHabits() {
 
     habitViews[habit.id] = { li, title, fill, progress };
     updateHabitView(habit);
-    renderHistory(data);
   });
+
+  renderHistory(data);
 }
 
 addHabitBtn.onclick = addHabitFromForm;
@@ -220,6 +244,8 @@ habitTitleInput.addEventListener("keydown", e => {
 
 // ---------- Clock tick ----------
 setInterval(() => {
+  if (!appActive) return;
+
   // New day started while the page was open
   if (todayKey() !== currentDay) {
     currentDay = todayKey();
@@ -247,7 +273,3 @@ setInterval(() => {
     if (log.startedAt) updateHabitView(habit);
   });
 }, 1000);
-
-// ---------- Start ----------
-renderHabits();
-renderTasks();

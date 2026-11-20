@@ -7,7 +7,34 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main>
+
+  <!-- LOGIN -->
+  <main id="authView" hidden>
+    <h1>Daily Tracker</h1>
+    <p class="subtitle">Log in or create an account</p>
+
+    <div class="auth-form">
+      <input id="authEmail" type="email" placeholder="Email" autocomplete="email">
+      <input id="authPassword" type="password" placeholder="Password (min 6 characters)"
+             autocomplete="current-password">
+      <div class="auth-buttons">
+        <button id="loginBtn">Log in</button>
+        <button id="signupBtn" class="secondary">Sign up</button>
+      </div>
+      <p id="authMessage" class="auth-message"></p>
+    </div>
+  </main>
+
+  <!-- TRACKER -->
+  <main id="appView" hidden>
+    <div class="topbar">
+      <div>
+        <small id="userEmail"></small><br>
+        <small id="syncStatus"></small>
+      </div>
+      <button id="logoutBtn" class="secondary">Log out</button>
+    </div>
+
     <h1>Daily Tracker</h1>
 
     <section>
@@ -36,11 +63,15 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/habits.js"></script>
   <script src="js/timer.js"></script>
   <script src="js/notify.js"></script>
   <script src="js/history.js"></script>
+  <script src="js/sync.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
 </body>
 </html>
