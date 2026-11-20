@@ -3,27 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>Daily Tracker</title>
+
+  <script>
+    // Apply a saved theme choice before the page paints (no flash)
+    try {
+      var t = localStorage.getItem("theme");
+      if (t === "light" || t === "dark") {
+        document.documentElement.setAttribute("data-theme", t);
+      }
+    } catch (e) {}
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/login.css">
+  
 </head>
 <body>
 
-  <!-- LOGIN -->
-  <main id="authView" hidden>
-    <h1>Daily Tracker</h1>
-    <p class="subtitle">Log in or create an account</p>
+    <!-- LOGIN -->
+  <div id="authView" class="login" hidden>
+    <div class="login-shell">
 
-    <div class="auth-form">
-      <input id="authEmail" type="email" placeholder="Email" autocomplete="email">
-      <input id="authPassword" type="password" placeholder="Password (min 6 characters)"
-             autocomplete="current-password">
-      <div class="auth-buttons">
-        <button id="loginBtn">Log in</button>
-        <button id="signupBtn" class="secondary">Sign up</button>
+      <!-- Left: illustration goes here in Step 3 -->
+            <div class="login-art" aria-hidden="true">
+        <svg viewBox="70 80 600 540" xmlns="http://www.w3.org/2000/svg" focusable="false">
+
+          <!-- small dots -->
+          <circle cx="123" cy="181" r="11" class="c-warning"/>
+          <circle cx="608" cy="408" r="8" class="c-primary"/>
+
+          <!-- timer ring -->
+          <circle cx="525" cy="215" r="103.5" class="ring-track"/>
+          <circle cx="525" cy="215" r="103.5" class="ring-arc" pathLength="100"
+                  transform="rotate(-90 525 215)"/>
+          <text x="525" y="215" class="ring-label">01:12</text>
+
+          <!-- task card -->
+          <g transform="translate(150 150) rotate(5)" class="card-shadow">
+            <rect width="250" height="300" rx="28" class="c-surface"/>
+            <rect x="22" y="26" width="120" height="14" rx="7" class="c-text"/>
+
+            <circle cx="35" cy="69" r="13" class="c-success"/>
+            <path d="M20 6 9 17l-5-5" class="check" transform="translate(28 62) scale(.5833)"/>
+            <rect x="60" y="64" width="150" height="10" rx="5" class="c-surface2"/>
+
+            <circle cx="35" cy="111" r="13" class="c-success"/>
+            <path d="M20 6 9 17l-5-5" class="check" transform="translate(28 104) scale(.5833)"/>
+            <rect x="60" y="106" width="120" height="10" rx="5" class="c-surface2"/>
+
+            <circle cx="35" cy="153" r="12" class="o-primary"/>
+            <rect x="60" y="148" width="140" height="10" rx="5" class="c-surface2"/>
+
+            <circle cx="35" cy="195" r="12" class="o-muted"/>
+            <rect x="60" y="190" width="100" height="10" rx="5" class="c-surface2"/>
+
+            <rect x="22" y="224" width="206" height="12" rx="6" class="c-surface2"/>
+            <rect x="22" y="224" width="130" height="12" rx="6" class="c-primary"/>
+          </g>
+
+          <!-- amber dome -->
+          <path d="M90 600 A150 150 0 0 1 390 600 Z" class="c-warning"/>
+          <circle cx="198" cy="516" r="8" class="c-text"/>
+          <circle cx="252" cy="516" r="8" class="c-text"/>
+          <path d="M6 9c3 4.5 9 4.5 12 0" class="smile" transform="translate(198 522) scale(1.9167)"/>
+
+          <!-- dark block -->
+          <rect x="330" y="410" width="96" height="190" rx="6" class="c-text"/>
+          <circle cx="355" cy="459" r="9" class="c-surface"/>
+          <circle cx="381" cy="459" r="9" class="c-surface"/>
+          <circle cx="356" cy="458" r="4" class="c-text"/>
+          <circle cx="382" cy="458" r="4" class="c-text"/>
+
+          <!-- green pill -->
+          <path d="M430 600 V410 A60 60 0 0 1 550 410 V600 Z" class="c-success"/>
+          <circle cx="468" cy="416" r="6" class="c-text"/>
+          <circle cx="506" cy="416" r="6" class="c-text"/>
+          <path d="M6 9c3 4.5 9 4.5 12 0" class="smile" transform="translate(468 424) scale(1.8333)"/>
+        </svg>
       </div>
-      <p id="authMessage" class="auth-message"></p>
+
+      <!-- Right: the form -->
+      <section class="login-card">
+        <div class="logo" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6 9 17l-5-5"/>
+          </svg>
+        </div>
+
+        <h1>Welcome back!</h1>
+        <p class="login-sub">Please enter your details</p>
+
+        <form id="loginForm" class="login-form" onsubmit="return false" novalidate>
+          <div class="field">
+            <label for="authEmail">Email</label>
+            <div class="field-row">
+              <input id="authEmail" type="email" autocomplete="email"
+                     placeholder="you@example.com">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="authPassword">Password</label>
+            <div class="field-row">
+              <input id="authPassword" type="password" autocomplete="current-password"
+                     placeholder="At least 6 characters">
+              <button id="togglePassword" type="button" class="icon-btn"
+                      aria-label="Show password">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="options">
+            <label class="check">
+              <input id="rememberMe" type="checkbox" checked>
+              <span>Remember me</span>
+            </label>
+            <a href="#" id="forgotLink">Forgot password?</a>
+          </div>
+
+          <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
+
+          <div class="buttons">
+            <button id="loginBtn" type="button" class="btn btn-primary">Log in</button>
+            <button id="signupBtn" type="button" class="btn btn-secondary">Create an account</button>
+          </div>
+        </form>
+
+        <p class="login-foot">Your tasks and timers sync across devices</p>
+      </section>
+
     </div>
-  </main>
+  </div>
 
   <!-- TRACKER -->
   <main id="appView" hidden>

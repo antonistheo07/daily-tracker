@@ -1,0 +1,115 @@
+/* Design tokens, taken from the Figma "Theme" variables.
+   Light is the default. Dark follows the system setting,
+   and can be forced with data-theme="light" or "dark". */
+
+:root {
+  color-scheme: light;
+
+  --bg: #F5F6F8;
+  --surface: #FFFFFF;
+  --surface-2: #EEF0F4;
+  --border: #E3E6EC;
+  --text: #111827;
+  --muted: #6B7280;
+  --primary: #2563EB;
+  --primary-soft: #E6EEFF;
+  --success: #16A34A;
+  --success-soft: #E3F5EA;
+  --warning: #F59E0B;
+  --warning-soft: #FEF1D6;
+  --on-warning: #3B2A00;
+  --track: #E3E6EC;
+  --on-primary: #FFFFFF;
+  --danger: #DC2626;
+  --backdrop: #111827;
+
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+}
+
+/* Dark mode: forced by the user */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0B0F17;
+  --surface: #151B26;
+  --surface-2: #1E2634;
+  --border: #2A3447;
+  --text: #F3F4F6;
+  --muted: #9CA3AF;
+  --primary: #5B8CFF;
+  --primary-soft: #1C2B50;
+  --success: #34D399;
+  --success-soft: #123A2D;
+  --warning: #FBBF24;
+  --warning-soft: #3B2F12;
+  --on-warning: #241A00;
+  --track: #2A3447;
+  --on-primary: #FFFFFF;
+  --danger: #F87171;
+  --backdrop: #05080D;
+}
+
+/* Dark mode: follows the system, unless the user chose light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #0B0F17;
+    --surface: #151B26;
+    --surface-2: #1E2634;
+    --border: #2A3447;
+    --text: #F3F4F6;
+    --muted: #9CA3AF;
+    --primary: #5B8CFF;
+    --primary-soft: #1C2B50;
+    --success: #34D399;
+    --success-soft: #123A2D;
+    --warning: #FBBF24;
+    --warning-soft: #3B2F12;
+    --on-warning: #241A00;
+    --track: #2A3447;
+    --on-primary: #FFFFFF;
+    --danger: #F87171;
+    --backdrop: #05080D;
+  }
+}
+
+/* Base: loads after style.css, so these win over its old body rule */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+/* Temporary bridge: makes the old app styles follow the tokens */
+main {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.add-row input,
+.auth-form input {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+li { border-bottom-color: var(--border); }
+li.done span { color: var(--muted); }
+
+.bar { background: var(--track); }
+li.habit.running { background: var(--primary-soft); }
+li.habit.reached { background: var(--success-soft); }
+
+button.secondary {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.subtitle,
+.topbar,
+.history-row small { color: var(--muted); }

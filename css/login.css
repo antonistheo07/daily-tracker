@@ -1,0 +1,312 @@
+/* ---------- Login: full-screen layer ----------
+   position: fixed keeps it clear of the old body padding in style.css */
+.login {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 40px;
+  background: var(--backdrop);
+  overflow: auto;
+  font-family: var(--font);
+  color: var(--text);
+}
+.login[hidden] { display: none; }
+
+.login-shell {
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  width: min(1200px, 100%);
+  height: min(752px, 100%);
+  padding: 8px;
+  background: var(--surface-2);
+  border-radius: 28px;
+}
+
+/* ---------- Left: illustration panel (filled in Step 3) ---------- */
+.login-art {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+/* ---------- Right: form card ---------- */
+.login-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 52px 48px 36px;
+  background: var(--surface);
+  border-radius: 20px;
+  overflow-y: auto;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 28px;
+  border-radius: 14px;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.login-card h1 {
+  margin: 0 0 6px;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.login-sub {
+  margin: 0 0 40px;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ---------- Underlined fields ---------- */
+.field {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--muted);
+}
+.field:focus-within {
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 9px;               /* keeps the height steady */
+}
+
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.field:focus-within label { color: var(--primary); }
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;                     /* the underline shows the focus instead */
+  background: transparent;
+  color: var(--text);
+  font: 400 17px var(--font);
+}
+.field input::placeholder { color: var(--muted); opacity: 0.8; }
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.icon-btn:hover { color: var(--text); }
+.icon-btn:focus-visible,
+.options a:focus-visible,
+.btn:focus-visible,
+.check input:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Remember me / forgot ---------- */
+.options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.options a { color: var(--muted); text-decoration: none; }
+.options a:hover { color: var(--text); text-decoration: underline; }
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.check input {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border: 1.5px solid var(--muted);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.check input:checked {
+  background: var(--text);
+  border-color: var(--text);
+}
+.check input:checked::after {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border: 2px solid var(--surface);
+  border-top: 0;
+  border-right: 0;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+/* ---------- Message from auth.js (it only sets text + the "error" class) ---------- */
+.login .auth-message {
+  min-height: 1.3em;
+  margin: -6px 0 -6px;
+  font-size: 13px;
+  color: var(--success);
+}
+.login .auth-message.error { color: var(--danger); }
+
+/* ---------- Buttons ---------- */
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: 600 16px var(--font);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.88; }
+.btn-primary { background: var(--text); color: var(--surface); }
+.btn-secondary { background: var(--surface-2); color: var(--text); }
+
+.login-foot {
+  margin: auto 0 0;
+  padding-top: 24px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- Phone: illustration banner on top, form card below ---------- */
+@media (max-width: 860px) {
+  .login {
+    padding: 44px 16px 16px;
+    place-items: stretch;
+    background: var(--bg);
+  }
+  .login-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+  }
+  .login-art {
+    flex: none;
+    height: 230px;
+    padding: 12px;
+    background: var(--surface-2);
+    border-radius: var(--radius-lg);
+  }
+  .login-card {
+    flex: 1;
+    min-height: 0;
+    padding: 28px 24px 24px;
+    border-radius: var(--radius-lg);
+  }
+  .logo { display: none; }
+  .login-card h1 { font-size: 28px; }
+  .login-sub { margin-bottom: 22px; }
+}
+
+/* Short phones: a smaller banner so the form still fits */
+@media (max-width: 860px) and (max-height: 700px) {
+  .login-art { height: 170px; }
+}
+/* ---------- Left: illustration panel ---------- */
+.login-art {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 40px;
+  border-radius: 20px;
+}
+.login-art svg { width: 100%; height: 100%; }
+
+/* SVG colors come from the same tokens as the rest of the page */
+.c-surface  { fill: var(--surface); }
+.c-surface2 { fill: var(--surface-2); }
+.c-text     { fill: var(--text); }
+.c-primary  { fill: var(--primary); }
+.c-success  { fill: var(--success); }
+.c-warning  { fill: var(--warning); }
+
+.o-primary { fill: none; stroke: var(--primary); stroke-width: 2; }
+.o-muted   { fill: none; stroke: var(--muted);   stroke-width: 2; }
+
+.check {
+  fill: none;
+  stroke: var(--on-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.smile {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.card-shadow { filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.08)); }
+
+.ring-track { fill: none; stroke: var(--surface); stroke-width: 23; }
+.ring-arc {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 23;
+  stroke-dasharray: 72 28;
+}
+.ring-label {
+  font: 700 40px var(--font);
+  fill: var(--text);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* The one moment of motion: the ring fills once when the page opens */
+@media (prefers-reduced-motion: no-preference) {
+  .ring-arc { animation: ring-fill 1.4s ease-out 0.2s backwards; }
+}
+@keyframes ring-fill {
+  from { stroke-dasharray: 0 100; }
+  to   { stroke-dasharray: 72 28; }
+}
