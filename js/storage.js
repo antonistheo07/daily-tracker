@@ -1,11 +1,14 @@
 const LEGACY_KEY = "tracker:v1";
 
 function emptyData() {
-  return { tasks: [], habits: [], logs: [] };
+  return { tasks: [], habits: [], logs: [], projects: [] };
 }
 
 function isEmptyData(d) {
-  return d.tasks.length === 0 && d.habits.length === 0 && d.logs.length === 0;
+  return d.tasks.length === 0 &&
+    d.habits.length === 0 &&
+    d.logs.length === 0 &&
+    (d.projects || []).length === 0;
 }
 
 // Reads what the app saved in this browser before we had accounts
@@ -18,7 +21,8 @@ function loadLegacyData() {
     return {
       tasks: data.tasks || [],
       habits: data.habits || [],
-      logs: data.logs || []
+      logs: data.logs || [],
+      projects: data.projects || []
     };
   } catch (error) {
     console.error("Could not read old local data:", error);

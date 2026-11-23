@@ -5,7 +5,7 @@ let syncing = false;
 let dirty = false;
 
 // Rows deleted locally that still need to be deleted in the cloud
-const pendingDeletes = { tasks: new Set(), habits: new Set() };
+const pendingDeletes = { tasks: new Set(), habits: new Set(), projects: new Set() };
 
 function setSyncStatus(text, isError = false) {
   const el = document.getElementById("syncStatus");
@@ -19,13 +19,14 @@ function markDeleted(table, id) {
 
 // ---------- Cloud -> app ----------
 async function loadFromCloud() {
-  const [tasks, habits, logs] = await Promise.all([
+  const [tasks, habits, logs, projects] = await Promise.all([
     sb.from("tasks").select("*").order("id"),
     sb.from("habits").select("*").order("id"),
-    sb.from("logs").select("*")
+    sb.from("logs").select("*"),
+    sb.from("projects").select("*").order("id")
   ]);
 
-  for (const result of [tasks, habits, logs]) {
+  for (const result of [tasks, habits, logs, projects]) {
     if (result.error) throw result.error;
   }
 
@@ -34,7 +35,8 @@ async function loadFromCloud() {
       id: r.id,
       text: r.text,
       done: r.done,
-      createdAt: r.created_at
+      createdAt: r.created_at,
+      projectId: r.project_id ?? null   // null = task without a project
     })),
     habits: habits.data.map(r => ({
       id: r.id,
@@ -48,6 +50,12 @@ async function loadFromCloud() {
       date: r.date,
       secondsDone: r.seconds_done,
       startedAt: r.started_at
+    })),
+    projects: projects.data.map(r => ({
+      id: r.id,
+      name: r.name,
+      status: r.status,
+      createdAt: r.created_at
     }))
   };
 }
@@ -66,11 +74,24 @@ async function deleteRows(table, ids) {
 }
 
 async function pushToCloud(uid, d, deletes) {
-  // 1. deletes (deleting a habit also deletes its logs in the database)
+  // 1. deletes
+  //    - deleting a habit also deletes its logs in the database
+  //    - deleting a project keeps its tasks and empties their project_id
   await deleteRows("habits", deletes.habits);
   await deleteRows("tasks", deletes.tasks);
+  await deleteRows("projects", deletes.projects);
 
-  // 2. upserts: habits BEFORE logs, because logs point to habits
+  // 2. upserts, in this order:
+  //    projects BEFORE tasks (tasks point to projects)
+  //    habits BEFORE logs (logs point to habits)
+  await upsertRows("projects", (d.projects || []).map(p => ({
+    user_id: uid,
+    id: p.id,
+    name: p.name,
+    status: p.status || "active",
+    created_at: p.createdAt || new Date(p.id).toISOString()
+  })), "user_id,id");
+
   await upsertRows("habits", d.habits.map(h => ({
     user_id: uid,
     id: h.id,
@@ -84,7 +105,8 @@ async function pushToCloud(uid, d, deletes) {
     id: t.id,
     text: t.text,
     done: t.done,
-    created_at: t.createdAt || new Date(t.id).toISOString()
+    created_at: t.createdAt || new Date(t.id).toISOString(),
+    project_id: t.projectId ?? null
   })), "user_id,id");
 
   await upsertRows("logs", d.logs.map(l => ({
@@ -120,7 +142,8 @@ async function syncNow() {
   const snapshot = JSON.parse(JSON.stringify(latestData));
   const deletes = {
     tasks: [...pendingDeletes.tasks],
-    habits: [...pendingDeletes.habits]
+    habits: [...pendingDeletes.habits],
+    projects: [...pendingDeletes.projects]
   };
   dirty = false;
 
@@ -128,6 +151,7 @@ async function syncNow() {
     await pushToCloud(uid, snapshot, deletes);
     deletes.tasks.forEach(id => pendingDeletes.tasks.delete(id));
     deletes.habits.forEach(id => pendingDeletes.habits.delete(id));
+    deletes.projects.forEach(id => pendingDeletes.projects.delete(id));
     if (!dirty) setSyncStatus("Saved ✓");
   } catch (error) {
     console.error("Sync failed:", error);
@@ -153,6 +177,7 @@ function stopSync() {
   dirty = false;
   pendingDeletes.tasks.clear();
   pendingDeletes.habits.clear();
+  pendingDeletes.projects.clear();
   setSyncStatus("");
 }
 

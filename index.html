@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/login.css">
+  <link rel="stylesheet" href="css/sidebar.css">
   
 </head>
 <body>
@@ -149,52 +150,239 @@
   </div>
 
   <!-- TRACKER -->
-  <main id="appView" hidden>
-    <div class="topbar">
-      <div>
-        <small id="userEmail"></small><br>
-        <small id="syncStatus"></small>
+  <div id="appView" class="shell" hidden>
+
+    <aside class="sidebar" aria-label="Sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6 9 17l-5-5"/>
+          </svg>
+        </span>
+        <span class="brand-name">Daily Tracker</span>
       </div>
-      <button id="logoutBtn" class="secondary">Log out</button>
-    </div>
 
-    <h1>Daily Tracker</h1>
+      <nav class="nav" aria-label="Sections">
+        <button type="button" class="nav-item" data-tab="profile">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>
+          </svg>
+          <span>Profile</span>
+        </button>
+        <button type="button" class="nav-item" data-tab="habits">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="13" r="8"/>
+            <path d="M12 9v4l2.5 2.5M9.5 2h5"/>
+          </svg>
+          <span>Habits</span>
+        </button>
+        <button type="button" class="nav-item" data-tab="tasks">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3.5" y="3.5" width="17" height="17" rx="4"/>
+            <path d="m8 12 3 3 5-6"/>
+          </svg>
+          <span>Tasks</span>
+        </button>
+        <button type="button" class="nav-item" data-tab="projects">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+          </svg>
+          <span>Projects</span>
+        </button>
+      </nav>
 
-    <section>
-      <h2>Today</h2>
-      <div class="add-row">
-        <input id="habitTitle" type="text" placeholder="Daily item (e.g. Study)">
-        <input id="habitMinutes" type="number" min="1" placeholder="Minutes" class="minutes">
-        <button id="addHabitBtn">Add</button>
+      <!-- Who is logged in + how today is going -->
+      <div class="today-card">
+        <div class="ring-avatar" data-ring>
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="24" r="21" class="ring-bg" pathLength="100"/>
+            <circle cx="24" cy="24" r="21" class="ring-fg" pathLength="100"
+                    transform="rotate(-90 24 24)"/>
+          </svg>
+          <span class="avatar-initial" data-initial></span>
+        </div>
+        <div class="today-text">
+          <span class="today-email" data-email></span>
+          <span class="today-progress" data-today></span>
+        </div>
       </div>
-      <ul id="habitList"></ul>
-    </section>
+    </aside>
 
-    <section>
-      <h2>Tasks</h2>
-      <div class="add-row">
-        <input id="taskInput" type="text" placeholder="Add a task...">
-        <button id="addBtn">Add</button>
+    <main class="content">
+
+      <!-- PROFILE -->
+      <div class="view" data-view="profile" hidden>
+        <header class="view-head profile-head">
+          <div class="ring-avatar ring-avatar-lg" data-ring>
+            <svg viewBox="0 0 48 48" aria-hidden="true">
+              <circle cx="24" cy="24" r="21" class="ring-bg" pathLength="100"/>
+              <circle cx="24" cy="24" r="21" class="ring-fg" pathLength="100"
+                      transform="rotate(-90 24 24)"/>
+            </svg>
+            <span class="avatar-initial" data-initial></span>
+          </div>
+          <div>
+            <h1 id="userEmail" class="profile-email"></h1>
+            <p class="profile-sub"><span data-today></span> · <span id="syncStatus"></span></p>
+          </div>
+        </header>
+
+        <dl class="stats">
+          <div class="stat">
+            <dt>Streak</dt>
+            <dd data-stat="streak">0 days</dd>
+          </div>
+          <div class="stat">
+            <dt>Daily habits</dt>
+            <dd data-stat="habits">0</dd>
+          </div>
+          <div class="stat">
+            <dt>Open tasks</dt>
+            <dd data-stat="tasks">0</dd>
+          </div>
+          <div class="stat">
+            <dt>Open projects</dt>
+            <dd data-stat="projects">0</dd>
+          </div>
+        </dl>
+
+        <section class="panel">
+          <h2>Appearance</h2>
+          <div class="segmented" role="radiogroup" aria-label="Theme">
+            <button type="button" role="radio" data-theme-choice="system">System</button>
+            <button type="button" role="radio" data-theme-choice="light">Light</button>
+            <button type="button" role="radio" data-theme-choice="dark">Dark</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Account</h2>
+          <p class="panel-note">Logging out saves your latest changes first.</p>
+          <button id="logoutBtn" type="button" class="btn-quiet">Log out</button>
+        </section>
       </div>
-      <ul id="taskList"></ul>
-    </section>
 
-    <section>
-      <h2>Last 7 days</h2>
-      <p id="streak" class="streak"></p>
-      <ul id="historyList"></ul>
-    </section>
-  </main>
+      <!-- HABITS -->
+      <div class="view" data-view="habits" hidden>
+        <header class="view-head">
+          <h1>Habits</h1>
+        </header>
+
+        <section class="panel">
+          <h2>Today</h2>
+          <div class="add-row">
+            <input id="habitTitle" type="text" placeholder="Daily item (e.g. Study)">
+            <input id="habitMinutes" type="number" min="1" placeholder="Minutes" class="minutes">
+            <button id="addHabitBtn">Add</button>
+          </div>
+          <ul id="habitList"></ul>
+        </section>
+
+        <section class="panel">
+          <h2>Last 7 days</h2>
+          <p id="streak" class="streak"></p>
+          <ul id="historyList"></ul>
+        </section>
+      </div>
+
+      <!-- TASKS -->
+      <div class="view" data-view="tasks" hidden>
+        <header class="view-head">
+          <h1>Tasks</h1>
+        </header>
+
+        <section class="panel">
+          <div class="add-row">
+            <input id="taskInput" type="text" placeholder="Add a task...">
+            <select id="taskProject" class="project-select" aria-label="Project for the new task">
+              <option value="">No project</option>
+            </select>
+            <button id="addBtn">Add</button>
+          </div>
+
+          <div class="task-filter">
+            <label for="taskFilter">Show</label>
+            <select id="taskFilter" class="project-select">
+              <option value="all">All tasks</option>
+              <option value="none">No project</option>
+            </select>
+          </div>
+
+          <ul id="taskList"></ul>
+          <p id="taskEmpty" class="task-empty" hidden>No tasks here yet.</p>
+        </section>
+      </div>
+
+      <!-- PROJECTS -->
+      <div class="view" data-view="projects" hidden>
+        <header class="view-head">
+          <h1>Projects</h1>
+        </header>
+
+        <!-- List of all projects -->
+        <section id="projectListPanel" class="panel">
+          <div class="add-row">
+            <input id="projectName" type="text" placeholder="New project (e.g. Finish the portfolio)">
+            <button id="addProjectBtn">Add</button>
+          </div>
+          <ul id="projectList"></ul>
+        </section>
+
+        <!-- One open project -->
+        <section id="projectDetail" class="panel" hidden>
+          <button id="projectBack" type="button" class="btn-back">← All projects</button>
+          <div class="project-row">
+            <h2 id="projectDetailName" class="project-detail-name"></h2>
+            <span id="projectDetailBadge" class="badge-done" hidden>Done</span>
+          </div>
+          <div class="project-bar">
+            <div id="projectDetailFill" class="project-fill"></div>
+          </div>
+          <small id="projectDetailCount" class="project-count"></small>
+          <button id="projectStatusBtn" type="button" class="btn-status" hidden></button>
+
+          <div class="add-row project-add-task">
+            <input id="projectTaskInput" type="text" placeholder="Add a task to this project...">
+            <button id="addProjectTaskBtn">Add</button>
+          </div>
+          <ul id="projectTaskList"></ul>
+        </section>
+
+        <div id="projectEmpty" class="empty">
+          <svg class="empty-art" viewBox="0 0 200 120" aria-hidden="true">
+            <path d="M20 120 A60 60 0 0 1 140 120 Z" class="c-warning"/>
+            <circle cx="66" cy="92" r="4" class="c-text"/>
+            <circle cx="94" cy="92" r="4" class="c-text"/>
+            <path d="M118 120 V58 A26 26 0 0 1 170 58 V120 Z" class="c-success"/>
+            <circle cx="135" cy="62" r="3.5" class="c-text"/>
+            <circle cx="153" cy="62" r="3.5" class="c-text"/>
+          </svg>
+          <h2>No projects yet</h2>
+          <p>Create one above, like “Learn Spanish” or “Finish the portfolio”.
+             Its tasks will also show up in the Tasks tab.</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/habits.js"></script>
+  <script src="js/projects.js"></script>
   <script src="js/timer.js"></script>
   <script src="js/notify.js"></script>
   <script src="js/history.js"></script>
   <script src="js/sync.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/nav.js"></script>
   <script src="js/auth.js"></script>
 </body>
 </html>

@@ -25,26 +25,47 @@ function stopApp() {
   data = emptyData();
   habitList.innerHTML = "";
   list.innerHTML = "";
+  projectList.innerHTML = "";
+  projectTaskList.innerHTML = "";
+  openProjectId = null;
+  taskFilter = "all";
+  taskEmpty.hidden = true;
   document.getElementById("historyList").innerHTML = "";
   document.getElementById("streak").textContent = "";
   Object.keys(habitViews).forEach(id => delete habitViews[id]);
+  updateProfile();
 }
 
 // ---------- Tasks ----------
 const input = document.getElementById("taskInput");
 const addBtn = document.getElementById("addBtn");
 const list = document.getElementById("taskList");
+const taskProjectSelect = document.getElementById("taskProject");
+const taskFilterSelect = document.getElementById("taskFilter");
+const taskEmpty = document.getElementById("taskEmpty");
+
+// Which tasks the Tasks tab shows: "all", "none" (no project) or a project id
+let taskFilter = "all";
+
+// Creates a task. projectId = null means "no project".
+// Used by the Tasks tab and by an open project.
+function createTask(text, projectId) {
+  data.tasks.push({
+    id: Date.now(),
+    text: text,
+    done: false,
+    createdAt: new Date().toISOString(),
+    projectId: projectId
+  });
+}
 
 function addTask() {
   const text = input.value.trim();
   if (!text) return;
 
-  data.tasks.push({
-    id: Date.now(),
-    text: text,
-    done: false,
-    createdAt: new Date().toISOString()
-  });
+  // "" = No project, otherwise the id of the chosen project
+  const chosen = taskProjectSelect.value;
+  createTask(text, chosen === "" ? null : Number(chosen));
 
   input.value = "";
   saveData(data);
@@ -65,34 +86,297 @@ function deleteTask(id) {
   renderTasks();
 }
 
+// Builds one task row (checkbox, text, delete).
+// The Tasks tab and an open project both use it, so they look and act the same.
+// showProject = true adds a small label with the project's name (Tasks tab only)
+function buildTaskItem(task, showProject = false) {
+  const li = document.createElement("li");
+  if (task.done) li.classList.add("done");
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = task.done;
+  checkbox.onchange = () => toggleTask(task.id);
+
+  const span = document.createElement("span");
+  span.textContent = task.text;
+
+  const del = document.createElement("button");
+  del.textContent = "✕";
+  del.className = "delete";
+  del.onclick = () => deleteTask(task.id);
+
+  li.append(checkbox, span);
+
+  // Project label: click it to open the project
+  const project = showProject && task.projectId !== null
+    ? data.projects.find(p => p.id === task.projectId)
+    : null;
+  if (project) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "task-chip";
+    chip.textContent = project.name;
+    chip.title = `Open project ${project.name}`;
+    chip.onclick = () => {
+      showTab("projects");
+      openProject(project.id);
+    };
+    li.appendChild(chip);
+  }
+
+  li.append(del);
+  return li;
+}
+
+// Refills a <select> with the projects, keeping the chosen value if it still exists.
+// firstOptions are the fixed choices at the top, e.g. [["", "No project"]].
+function fillProjectSelect(select, firstOptions, value) {
+  select.innerHTML = "";
+  firstOptions.concat(data.projects.map(p => [String(p.id), p.name])).forEach(([v, label]) => {
+    const option = document.createElement("option");
+    option.value = v;
+    option.textContent = label;
+    select.appendChild(option);
+  });
+  const exists = [...select.options].some(o => o.value === String(value));
+  select.value = exists ? String(value) : firstOptions[0][0];
+  return select.value;
+}
+
+function taskMatchesFilter(task) {
+  if (taskFilter === "all") return true;
+  if (taskFilter === "none") return task.projectId === null;
+  return task.projectId === Number(taskFilter);
+}
+
 function renderTasks() {
+  // Keep both dropdowns in step with the current projects
+  // (if the filtered project was deleted, go back to "All tasks")
+  taskFilter = fillProjectSelect(taskFilterSelect, [["all", "All tasks"], ["none", "No project"]], taskFilter);
+  fillProjectSelect(taskProjectSelect, [["", "No project"]], taskProjectSelect.value);
+
   list.innerHTML = "";
 
-  data.tasks.forEach(task => {
-    const li = document.createElement("li");
-    if (task.done) li.classList.add("done");
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = task.done;
-    checkbox.onchange = () => toggleTask(task.id);
-
-    const span = document.createElement("span");
-    span.textContent = task.text;
-
-    const del = document.createElement("button");
-    del.textContent = "✕";
-    del.className = "delete";
-    del.onclick = () => deleteTask(task.id);
-
-    li.append(checkbox, span, del);
-    list.appendChild(li);
+  const shown = data.tasks.filter(taskMatchesFilter);
+  shown.forEach(task => {
+    list.appendChild(buildTaskItem(task, true));
   });
+  taskEmpty.hidden = shown.length > 0;
+
+  renderProjects();   // project progress depends on tasks
+  updateProfile();
 }
+
+// Changing the filter to a project also picks that project for new tasks
+taskFilterSelect.onchange = () => {
+  taskFilter = taskFilterSelect.value;
+  if (taskFilter === "none") taskProjectSelect.value = "";
+  else if (taskFilter !== "all") taskProjectSelect.value = taskFilter;
+  renderTasks();
+};
 
 addBtn.onclick = addTask;
 input.addEventListener("keydown", e => {
   if (e.key === "Enter") addTask();
+});
+
+// ---------- Projects ----------
+const projectNameInput = document.getElementById("projectName");
+const addProjectBtn = document.getElementById("addProjectBtn");
+const projectList = document.getElementById("projectList");
+const projectEmpty = document.getElementById("projectEmpty");
+const projectListPanel = document.getElementById("projectListPanel");
+const projectDetail = document.getElementById("projectDetail");
+const projectTaskInput = document.getElementById("projectTaskInput");
+const addProjectTaskBtn = document.getElementById("addProjectTaskBtn");
+const projectTaskList = document.getElementById("projectTaskList");
+
+// Which project is open (null = show the list of all projects)
+let openProjectId = null;
+
+function openProject(projectId) {
+  openProjectId = projectId;
+  renderProjects();
+  window.scrollTo(0, 0);
+  projectTaskInput.focus();
+}
+
+function closeProject() {
+  openProjectId = null;
+  renderProjects();
+}
+
+// Adds a task to the open project. It also shows up in the Tasks tab,
+// because it is the same task in data.tasks.
+function addProjectTask() {
+  const text = projectTaskInput.value.trim();
+  if (!text || openProjectId === null) return;
+
+  createTask(text, openProjectId);
+
+  projectTaskInput.value = "";
+  saveData(data);
+  renderTasks();   // redraws the Tasks tab AND the open project
+}
+
+function addProjectFromForm() {
+  const name = projectNameInput.value.trim();
+  if (!name) return;
+
+  addProject(data, name);
+
+  projectNameInput.value = "";
+  saveData(data);
+  renderProjects();
+}
+
+function removeProject(project) {
+  const count = projectTasks(data, project.id).length;
+  const message = count > 0
+    ? `Delete "${project.name}"? Its ${count} task${count === 1 ? "" : "s"} will stay in Tasks.`
+    : `Delete "${project.name}"?`;
+  if (!confirm(message)) return;
+
+  deleteProject(data, project.id);
+  markDeleted("projects", project.id);
+  saveData(data);
+  renderTasks();   // also redraws the projects
+}
+
+function renderProjects() {
+  const open = data.projects.find(p => p.id === openProjectId);
+
+  // The open project was deleted (or never existed): go back to the list
+  if (!open) openProjectId = null;
+
+  projectListPanel.hidden = Boolean(open);
+  projectDetail.hidden = !open;
+  projectEmpty.hidden = Boolean(open) || data.projects.length > 0;
+
+  if (open) renderProjectDetail(open);
+
+  projectList.innerHTML = "";
+
+  // Active projects first, done projects at the bottom
+  const ordered = [...data.projects].sort(
+    (a, b) => (a.status === "done") - (b.status === "done")
+  );
+
+  ordered.forEach(project => {
+    const p = projectProgress(data, project.id);
+
+    const li = document.createElement("li");
+    li.className = "project";
+    if (p.total > 0 && p.done === p.total) li.classList.add("complete");
+    if (project.status === "done") li.classList.add("finished");
+
+    // Click (or Enter) anywhere on the card opens the project
+    li.tabIndex = 0;
+    li.setAttribute("role", "button");
+    li.setAttribute("aria-label", `Open project ${project.name}`);
+    li.onclick = () => openProject(project.id);
+    li.onkeydown = e => {
+      if (e.key === "Enter" && e.target === li) openProject(project.id);
+    };
+
+    // top row: name + delete
+    const top = document.createElement("div");
+    top.className = "project-row";
+
+    const name = document.createElement("span");
+    name.className = "project-name";
+    name.textContent = project.name;
+
+    const del = document.createElement("button");
+    del.textContent = "✕";
+    del.className = "delete";
+    del.onclick = e => {
+      e.stopPropagation();   // don't open the project when deleting it
+      removeProject(project);
+    };
+
+    if (project.status === "done") {
+      const badge = document.createElement("span");
+      badge.className = "badge-done";
+      badge.textContent = "Done";
+      name.after(badge);
+      top.append(name, badge, del);
+    } else {
+      top.append(name, del);
+    }
+
+    // progress bar
+    const bar = document.createElement("div");
+    bar.className = "project-bar";
+    const fill = document.createElement("div");
+    fill.className = "project-fill";
+    fill.style.width = p.percent + "%";
+    bar.appendChild(fill);
+
+    // "3 / 5 tasks"
+    const count = document.createElement("small");
+    count.className = "project-count";
+    count.textContent = p.total === 0
+      ? "No tasks yet"
+      : `${p.done} / ${p.total} task${p.total === 1 ? "" : "s"} done`;
+
+    li.append(top, bar, count);
+    projectList.appendChild(li);
+  });
+}
+
+// Draws the open project: name, progress and its tasks
+function renderProjectDetail(project) {
+  const p = projectProgress(data, project.id);
+
+  document.getElementById("projectDetailName").textContent = project.name;
+  document.getElementById("projectDetailFill").style.width = p.percent + "%";
+  document.getElementById("projectDetailCount").textContent = p.total === 0
+    ? "No tasks yet. Add the first one below."
+    : `${p.done} / ${p.total} task${p.total === 1 ? "" : "s"} done`;
+  projectDetail.classList.toggle("complete", p.total > 0 && p.done === p.total);
+
+  // "Done" badge + button:
+  //  - project done          -> badge, and "Reopen project"
+  //  - all its tasks ticked  -> "Mark project done"
+  //  - otherwise             -> no button
+  const isDone = project.status === "done";
+  const allTicked = p.total > 0 && p.done === p.total;
+  const statusBtn = document.getElementById("projectStatusBtn");
+
+  document.getElementById("projectDetailBadge").hidden = !isDone;
+  statusBtn.hidden = !isDone && !allTicked;
+  statusBtn.textContent = isDone ? "Reopen project" : "✓ Mark project done";
+  statusBtn.classList.toggle("reopen", isDone);
+
+  projectTaskList.innerHTML = "";
+  projectTasks(data, project.id).forEach(task => {
+    projectTaskList.appendChild(buildTaskItem(task));
+  });
+}
+
+document.getElementById("projectBack").onclick = closeProject;
+
+// Marks the open project done, or reopens it
+document.getElementById("projectStatusBtn").onclick = () => {
+  const project = data.projects.find(p => p.id === openProjectId);
+  if (!project) return;
+
+  setProjectStatus(data, project.id, project.status === "done" ? "active" : "done");
+  saveData(data);
+  renderProjects();
+  updateProfile();
+};
+
+addProjectTaskBtn.onclick = addProjectTask;
+projectTaskInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") addProjectTask();
+});
+
+addProjectBtn.onclick = addProjectFromForm;
+projectNameInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") addProjectFromForm();
 });
 
 // ---------- Daily habits ----------
@@ -235,6 +519,7 @@ function renderHabits() {
   });
 
   renderHistory(data);
+  updateProfile();
 }
 
 addHabitBtn.onclick = addHabitFromForm;
@@ -272,4 +557,5 @@ setInterval(() => {
     const log = getTodayLog(data, habit.id);
     if (log.startedAt) updateHabitView(habit);
   });
+  if (data.habits.some(h => getTodayLog(data, h.id).startedAt)) updateProfile();
 }, 1000);
