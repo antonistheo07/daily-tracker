@@ -1,0 +1,43 @@
+# Builds the React app on GitHub's servers.
+# Build only: nothing is deployed, the live site on main is not touched.
+name: Build React app
+
+# When it runs
+on:
+  push:
+    branches: [react]        # every push to the react branch
+  pull_request:
+    branches: [main]         # and when you open a pull request into main
+  workflow_dispatch:         # plus a "Run workflow" button on GitHub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest   # a fresh Linux machine each time
+
+    # All "run:" commands below happen inside web/
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v5
+
+      - name: Install Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm                                  # reuse downloads between runs
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install packages
+        run: npm ci          # like npm install, but exactly what package-lock.json says
+
+      - name: Build
+        run: npm run build   # creates web/dist (the finished site)
+
+      - name: Save the built site
+        uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: web/dist     # paths in "with:" start from the repo root
